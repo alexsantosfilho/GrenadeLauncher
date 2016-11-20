@@ -11,12 +11,25 @@ class AMyProject2HUD : public AHUD
 public:
 	AMyProject2HUD();
 
-	/** Primary draw call for the HUD */
+
+	UPROPERTY(EditAnywhere)
+		UFont* HUDFont;
+	UPROPERTY(EditAnywhere)
+		UTexture2D* MyTexture;
+	UPROPERTY(EditAnywhere)
+		UTexture2D* MyTexture2;
+
+	UPROPERTY(EditAnywhere)
+		UTexture2D* Logo;
+
+
+	UPROPERTY(EditAnywhere)
+		UTexture2D* Potion;
+
 	virtual void DrawHUD() override;
 
 private:
 	/** Crosshair asset pointer */
 	class UTexture2D* CrosshairTex;
-
 };
 

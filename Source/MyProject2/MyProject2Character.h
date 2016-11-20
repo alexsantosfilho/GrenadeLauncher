@@ -23,8 +23,30 @@ class AMyProject2Character : public ACharacter
 	class USceneComponent* FP_MuzzleLocation;
 
 	/** First person camera */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	//class UCameraComponent* FirstPersonCameraComponent;
+
+	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FirstPersonCameraComponent;
+		class USpringArmComponent* CameraBoom;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		class USkeletalMeshComponent* Arma;
+
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* FollowCamera;
+
+	/** SCene component for the In-Car view origin */
+	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* InternalCameraBase;
+
+	/** Camera component for the In-Car view */
+	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		UCameraComponent* InternalCamera;
+
+
+
 public:
 	AMyProject2Character();
 
@@ -47,23 +69,83 @@ public:
 	TSubclassOf<class AMyProject2Projectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	class USoundBase* FireSound;
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	//class USoundBase* FireSound;
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
 
+
+
+
+	FVector InternalCameraOrigin;
+
+	void OnToggleCamera();
+	/** Handle reset VR device */
+	void OnResetVR();
+
+	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly)
+		bool bInCarCameraActive;
+
+	virtual void Tick(float Delta) override;
+
+	static const FName LookUpBinding;
+	static const FName LookRightBinding;
+
+	void SetColetavelLife(int NewColetavelLife);
+	int GetColetavelLife();
+
+	//void SetColetavel(int NewColetavel);
+	//int GetColetavel();
+	void OnDeath();
+
+	FORCEINLINE TArray<class AItem*> GetInventory() const { return Inventory; }
+
+	/** Returns Mesh1P subobject **/
+	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+
+	
+
+	
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence* JumpAnim;
+
+	
+
+	FORCEINLINE int GetPontuacao() const { return Pontuacao; }
+	FORCEINLINE void AMyProject2Character::SetPontuacao(int NewPontuacao) { Pontuacao = NewPontuacao; }
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	void TimerManager();
+
+	virtual void Jump() override;
+
+	virtual void Crouch(bool bClientSimulation = true) override;
+
+	void StartCrouch();
+	void StopCrouch();
+
+
+
 protected:
+
+	void DropProjectActor();
+
 	
 	/** Fires a projectile. */
 	void OnFire();
 
-	/** Handles moving forward/backward */
-	void MoveForward(float Val);
+	/** Called for forwards/backward input */
+	void MoveForward(float Value);
 
-	/** Handles stafing movement, left and right */
-	void MoveRight(float Val);
+	/** Called for side to side input */
+	void MoveRight(float Value);
 
 	/**
 	 * Called via input to turn at a given rate.
@@ -89,6 +171,20 @@ protected:
 	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
 	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
 	TouchData	TouchItem;
+
+
+	/** Handler for when a touch input begins. */
+	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
+
+	/** Handler for when a touch input stops. */
+	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
+
+
+	void StartRun();
+	void StopRun();
+	void DropProjectActor2();
+
+
 	
 protected:
 	// APawn interface
@@ -104,10 +200,57 @@ protected:
 	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
 
 public:
-	/** Returns Mesh1P subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	//FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+
+private:
+
+	UPROPERTY(EditAnywhere)
+		int Pontuacao;
+	
+	TSubclassOf<class UUserWidget> UserWidget;
+	UFUNCTION(BlueprintCallable, Category = "SaveGameee")
+
+	void ShowPontuacao();
+
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	USoundCue* FireSound;
+	
+	UAudioComponent* AudioComp;
+
+
+	UFUNCTION(Reliable, Server, WithValidation)
+		void DropProjectServer();
+	void DropProjectServer_Implementation();
+	bool DropProjectServer_Validate();
+
+	UFUNCTION()
+		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void EnableIncarView(const bool bState, const bool bForce = false);
+
+	int ColetavelLife = 10;
+
+	void OnCollect();
+
+	USphereComponent* CollectCollisionComp;
+	TArray<class AItem*> Inventory;
+
+
+	void Pause();
+
+	//void Pause2();
+
+	FTimerHandle CountdownTimerHandle;
+
+	float CountdownTime;
+
+
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence* JumpAnim2;
 
 };
 

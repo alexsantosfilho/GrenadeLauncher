@@ -6,6 +6,7 @@ public class MyProject2 : ModuleRules
 {
 	public MyProject2(TargetInfo Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
-	}
+        PublicDependencyModuleNames.AddRange(new string[] { "RHI", "Core", "CoreUObject", "Engine", "InputCore", "AIModule", "GameplayTasks", "UMG", "Slate", "SlateCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] { });
+    }
 }

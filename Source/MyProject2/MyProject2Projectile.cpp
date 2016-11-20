@@ -4,6 +4,7 @@
 #include "MyProject2Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "PhysicsEngine/DestructibleActor.h"
+#include "AIPatrol.h"
 
 
 
@@ -23,6 +24,9 @@ AMyProject2Projectile::AMyProject2Projectile()
 
 	// Set as root component
 	RootComponent = CollisionComp;
+
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AMyProject2Projectile::OnOverlapBegin);
+
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
@@ -103,4 +107,25 @@ void AMyProject2Projectile::OnDetonate()
 	UE_LOG(LogTemp, Warning, TEXT("OnDetonate"));
 
 	Destroy();
+}
+
+
+void AMyProject2Projectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+
+
+
+	if ((OtherActor != nullptr) && (OtherActor != this) &&
+		(OtherComp != nullptr) && (OtherActor->IsA(AAIPatrol::StaticClass()))) {
+
+		AAIPatrol* MyProject2Character = Cast<AAIPatrol>(OtherActor);
+		MyProject2Character->SetColetavelLife2(MyProject2Character->GetColetavelLife2() - DamageAmount); // DANO NO PERSONAGEM
+		MyProject2Character->OnDeath2();
+		//	MyProject2Character->OnDeath3();
+
+
+		UE_LOG(LogTemp, Warning, TEXT("Granada DANO NO INIMIGO"));
+
+	}
+
+
 }
